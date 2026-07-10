@@ -15,19 +15,31 @@ from groq import Groq
 from services.coaching.llm import LLMCoach
 from services.coaching.tts import TextToSpeech
 from services.coaching.voice_pipeline import VoicePipeline, autoplay_audio
+from dotenv import load_dotenv
+
+load_dotenv()
 
   
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
+def _get_secret(key, default=None):
+    try:
+        return st.secrets[key]
+    except Exception:
+        return default
+
+
 def get_ice_servers():
     ice_servers = [{"urls": ["stun:stun.l.google.com:19302"]}]
 
-    if hasattr(st, "secrets") and "TURN_URL" in st.secrets:
+    turn_url = _get_secret("TURN_URL")
+
+    if turn_url:
         ice_servers.append({
-            "urls": [st.secrets["TURN_URL"]],
-            "username": st.secrets.get("TURN_USERNAME", ""),
-            "credential": st.secrets.get("TURN_CREDENTIAL", ""),
+            "urls": [turn_url],
+            "username": _get_secret("TURN_USERNAME", ""),
+            "credential": _get_secret("TURN_CREDENTIAL", ""),
         })
     else:
         # Free shared TURN relay (Open Relay Project) so the camera still
