@@ -18,8 +18,14 @@ This project has two independent deployments:
 4. `packages.txt` (repo root) installs the system libraries (`libgl1`, etc.) that `mediapipe`/`opencv` need on the minimal cloud container — this prevents `ImportError: libGL.so.1` crashes.
 5. Once deployed, copy the app's live URL (something like `https://<your-app-name>.streamlit.app/`) and update the "Try it Live" button in `Landing Page/index.html` (the `href` on the `#cta-button` link) to point to it.
 
-### Known limitation: camera connectivity
-`webrtc_streamer` is configured with a public STUN server only (no TURN server). Most users connect fine, but some behind restrictive/corporate NATs may fail to establish the camera stream. If this becomes a problem, add a TURN provider (e.g. Twilio, Metered, or an open TURN relay) and pass its credentials into `rtc_configuration` in `Main App/main.py`.
+### Camera connectivity (STUN/TURN)
+`get_ice_servers()` in `Main App/main.py` configures a public STUN server plus a free shared TURN relay (Open Relay Project) as a fallback, since Streamlit Cloud's network often can't establish a direct peer-to-peer WebRTC connection on STUN alone. The free relay is fine for testing/demos but is shared/rate-limited. For production reliability, get your own TURN credentials (e.g. Twilio, Metered.ca) and add them to Secrets:
+```toml
+TURN_URL = "turn:your-turn-host:3478"
+TURN_USERNAME = "your-username"
+TURN_CREDENTIAL = "your-credential"
+```
+`get_ice_servers()` picks these up automatically when present, ahead of the free fallback.
 
 ## 2. Netlify (`Landing Page/`)
 

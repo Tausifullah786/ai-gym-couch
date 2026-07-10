@@ -20,6 +20,33 @@ from services.coaching.voice_pipeline import VoicePipeline, autoplay_audio
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
+def get_ice_servers():
+    ice_servers = [{"urls": ["stun:stun.l.google.com:19302"]}]
+
+    if hasattr(st, "secrets") and "TURN_URL" in st.secrets:
+        ice_servers.append({
+            "urls": [st.secrets["TURN_URL"]],
+            "username": st.secrets.get("TURN_USERNAME", ""),
+            "credential": st.secrets.get("TURN_CREDENTIAL", ""),
+        })
+    else:
+        # Free shared TURN relay (Open Relay Project) so the camera still
+        # connects out of the box on restrictive networks/cloud hosts. For
+        # production reliability, set TURN_URL/TURN_USERNAME/TURN_CREDENTIAL
+        # in .streamlit/secrets.toml with your own TURN provider's credentials.
+        ice_servers.append({
+            "urls": [
+                "turn:openrelay.metered.ca:80",
+                "turn:openrelay.metered.ca:443",
+                "turn:openrelay.metered.ca:443?transport=tcp",
+            ],
+            "username": "openrelayproject",
+            "credential": "openrelayproject",
+        })
+
+    return ice_servers
+
+
 def main():
     st.set_page_config(
         page_icon="🏋️‍♀️",
@@ -202,7 +229,7 @@ def main():
             key="exercise-analysis",
             mode=WebRtcMode.SENDRECV,
             video_processor_factory=VideoProcessorClass,
-            rtc_configuration={"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]},
+            rtc_configuration={"iceServers": get_ice_servers()},
             media_stream_constraints={
                 "video": True,
                 "audio": False
