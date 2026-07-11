@@ -9,7 +9,7 @@ This project has two independent deployments:
 1. Push this repo to GitHub (make sure `.gitignore` is committed first so `.env`/`.venv`/`data.db` never get pushed).
 2. On [share.streamlit.io](https://share.streamlit.io), create a new app from your repo:
    - **Main file path:** `Main App/main.py`
-   - **Python version:** 3.11 (Advanced settings → Python version). A `.python-version` file pinning `3.11` is also committed, since `mediapipe==0.10.14` only officially supports Python 3.8–3.11.
+   - **Python version:** 3.11 is preferred (Advanced settings → Python version, also pinned via the committed `.python-version` file). Note: as of mid-2026 Streamlit Community Cloud has a known bug ([streamlit/streamlit#15326](https://github.com/streamlit/streamlit/issues/15326)) where it sometimes ignores this setting and force-provisions Python 3.14 instead. To guard against that, every pin in `requirements.txt` below has been verified to install and run correctly on **both** Python 3.11 and 3.14, so deployment succeeds either way. The Python version can only be set at app *creation* time — if you need to change it later you must delete and redeploy the app.
 3. **Secrets:** in the app's Settings → Secrets, add:
    ```toml
    GROQ_API_KEY = "your-real-key-here"
@@ -42,13 +42,13 @@ Before going live, add your own images/video into `Landing Page/IMGs_add_your_ow
 
 | Component | Version |
 |---|---|
-| Python | 3.11 (pinned via `.python-version`; dev machine used 3.12) |
+| Python | 3.11 preferred (`.python-version`); verified working on 3.14 too (see note above) |
 | Streamlit | 1.54.0 |
 | streamlit-webrtc | 0.64.5 |
-| MediaPipe | 0.10.14 |
-| OpenCV (headless) | 4.10.0.84 |
-| NumPy | 2.5.0 |
-| pandas | 2.2.3 |
+| MediaPipe | 0.10.35 |
+| OpenCV (contrib) | 4.11.0.86 |
+| NumPy | 2.4.6 |
+| pandas | 2.3.3 |
 | groq (SDK) | 1.5.0 |
 | gTTS | 2.5.3 |
 | python-dotenv | 1.2.2 |
