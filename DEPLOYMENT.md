@@ -15,7 +15,7 @@ This project has two independent deployments:
    GROQ_API_KEY = "your-real-key-here"
    ```
    The code already reads `st.secrets["GROQ_API_KEY"]` as a fallback (`Main App/main.py`), so no code change is needed — just don't commit your real key in `.env`.
-4. `packages.txt` (repo root) installs the system libraries (`libgl1`, etc.) that `mediapipe`/`opencv` need on the minimal cloud container — this prevents `ImportError: libGL.so.1` crashes.
+4. `packages.txt` (repo root) installs the system libraries (`libgl1`, `libegl1`, `libgles2`, etc.) that `mediapipe`/`opencv` need on the minimal cloud container — this prevents `ImportError`/`OSError` crashes like `libGL.so.1` or `libGLESv2.so.2: cannot open shared object file`. MediaPipe's native library dlopens GLES/EGL even for CPU-only pose detection, so these are required even though the app never uses GPU rendering.
 5. Once deployed, copy the app's live URL (something like `https://<your-app-name>.streamlit.app/`) and update the "Try it Live" button in `Landing Page/index.html` (the `href` on the `#cta-button` link) to point to it.
 
 ### Camera connectivity (STUN/TURN)
