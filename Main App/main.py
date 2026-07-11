@@ -157,7 +157,53 @@ def main():
                         st.session_state.audio_to_play, st.session_state.coach_feedback = result
                 st.rerun()
 
-        if workout_started:
+    st.title("AI Real-time GYM Coach")
+    st.markdown("#### Real-time pose detection with proactive AI voice coaching")
+ 
+    if st.session_state.get("audio_to_play"):
+        autoplay_audio(st.session_state.audio_to_play)
+
+    if st.session_state.get("coach_feedback"):
+        st.markdown("")
+        st.success(f"🤖 **Coach:** {st.session_state.coach_feedback}")
+
+    if not workout_started:
+        st.markdown(
+            """
+            <div style="
+                border: 10px dashed #444;
+                border-radius: 0px;
+                padding: 48px 32px;
+                text-align: center;
+                color: #888;
+                margin-top: 32px;
+                margin-bottom: 32px;
+            ">
+                <h2 style="color:#ccc; margin-bottom:8px;">👈 Set your workout plan</h2>
+                <p style="font-size:1.05rem;">
+                    Choose your exercise, sets and reps in the sidebar,<br>
+                    then click <strong>Start Workout</strong> to activate the camera and AI coach.
+                </p>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+    else:
+        context = webrtc_streamer(
+            key="exercise-analysis",
+            mode=WebRtcMode.SENDRECV,
+            video_processor_factory=VideoProcessorClass,
+            rtc_configuration={"iceServers": get_ice_servers()},
+            media_stream_constraints={
+                "video": True,
+                "audio": False
+            },
+            async_processing=True
+        )
+
+        sync_metrics_update(context)
+
+        with st.sidebar:
             st.divider()
 
             exercise = st.session_state.get("exercise_type")
@@ -204,52 +250,6 @@ def main():
                 st.metric("Front Knee Angle", f"{st.session_state.front_knee_angle}°")
                 st.metric("Torso Angle", f"{st.session_state.torso_angle}°")
                 st.metric("Balance Status", st.session_state.balance_status)
-
-    st.title("AI Real-time GYM Coach")
-    st.markdown("#### Real-time pose detection with proactive AI voice coaching")
- 
-    if st.session_state.get("audio_to_play"):
-        autoplay_audio(st.session_state.audio_to_play)
-
-    if st.session_state.get("coach_feedback"):
-        st.markdown("")
-        st.success(f"🤖 **Coach:** {st.session_state.coach_feedback}")
-
-    if not workout_started:
-        st.markdown(
-            """
-            <div style="
-                border: 10px dashed #444;
-                border-radius: 0px;
-                padding: 48px 32px;
-                text-align: center;
-                color: #888;
-                margin-top: 32px;
-                margin-bottom: 32px;
-            ">
-                <h2 style="color:#ccc; margin-bottom:8px;">👈 Set your workout plan</h2>
-                <p style="font-size:1.05rem;">
-                    Choose your exercise, sets and reps in the sidebar,<br>
-                    then click <strong>Start Workout</strong> to activate the camera and AI coach.
-                </p>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-    else:
-        context = webrtc_streamer(
-            key="exercise-analysis",
-            mode=WebRtcMode.SENDRECV,
-            video_processor_factory=VideoProcessorClass,
-            rtc_configuration={"iceServers": get_ice_servers()},
-            media_stream_constraints={
-                "video": True,
-                "audio": False
-            },
-            async_processing=True
-        )
-
-        sync_metrics_update(context)
 
         if context.state.playing:
             time.sleep(0.25)
